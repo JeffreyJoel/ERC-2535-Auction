@@ -17,7 +17,7 @@ contract DiamondDeployer is Test, IDiamondCut {
     DiamondLoupeFacet dLoupe;
     OwnershipFacet ownerF;
     ERC20Facet erc20F;
-    AuctionFacet auctionF
+    AuctionFacet auctionF;
 
     function testDeployDiamond() public {
         //deploy facets

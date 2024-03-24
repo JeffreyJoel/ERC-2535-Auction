@@ -8,8 +8,8 @@ library LibAppStorage {
     uint256 constant TeamWallet = 2;
     uint256 constant PreviousBidder = 3;
     uint256 constant Lastinteractor = 1;
-    address constant TeamWalletAddress = "0x02F6302D1b7C94FF01a2B59ebAC8d9aa2fc62522"
-    address constant DAOAddress = "0x02F6302D1b7C94FF01a2B59ebAC8d9aa2fc62522"
+    address constant TeamWalletAddress = 0x02F6302D1b7C94FF01a2B59ebAC8d9aa2fc62522;
+    address constant DAOAddress = 0x02F6302D1b7C94FF01a2B59ebAC8d9aa2fc62522;
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     struct AuctionDetails {
