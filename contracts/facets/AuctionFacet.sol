@@ -59,23 +59,27 @@ contract AuctionFacet {
 
         uint balance = l.balances[msg.sender];
         require(balance >= _amount, "AuctionFacet: Not enough balance to bid");
-        LibAppStorage._transferFrom(msg.sender, address(this), _amount);
+        // LibAppStorage._transferFrom(msg.sender, address(this), _amount);
 
         if (a.currentBid == 0) {
+            LibAppStorage._transferFrom(msg.sender, address(this), _amount);
             a.highestBidder = msg.sender;
             a.currentBid = _amount;
-        } else {
+        } 
+        else {
             uint check = ((a.currentBid * 20) / 100) + a.currentBid;
             if (_amount < check) {
                 revert("Unprofitable Bid");
             }
+             LibAppStorage._transferFrom(msg.sender, address(this), _amount);
+            //_payPreviousBidder
+            _payPreviousBidder(_auctionId, _amount, a.currentBid);
+
             a.previousBidder = a.highestBidder;
             a.highestBidder = msg.sender;
             a.currentBid = _amount;
 
-            //payPreviousBidder
-            payPreviousBidder(_auctionId);
-            handleTransactionCosts(_auctionId);
+            _handleTransactionCosts(_auctionId, _amount);
             payLastInteractor(_auctionId, a.highestBidder);
         }
     }
@@ -125,22 +129,33 @@ contract AuctionFacet {
         a.nftAddress = address(0);
     }
 
-    function payPreviousBidder(uint256 _auctionId) private {
+    function _payPreviousBidder(
+        uint256 _auctionId,
+        uint256 _amount,
+        uint256 _previousBid
+    ) private {
         LibAppStorage.AuctionDetails storage a = l.Auctions[_auctionId];
         require(
             a.previousBidder != address(0),
             "AuctionFacet: No previous bidder"
         );
 
-        uint256 paymentAmount = (a.currentBid * LibAppStorage.PreviousBidder) /
-            100;
-        LibAppStorage._transferFrom(address(this), a.previousBidder, paymentAmount);
+        uint256 paymentAmount = ((_amount * LibAppStorage.PreviousBidder) /
+            100) + _previousBid;
+        LibAppStorage._transferFrom(
+            address(this),
+            a.previousBidder,
+            paymentAmount
+        );
     }
 
-    function handleTransactionCosts(uint256 _auctionId) private {
+    function _handleTransactionCosts(
+        uint256 _auctionId,
+        uint256 _amount
+    ) private {
         LibAppStorage.AuctionDetails storage a = l.Auctions[_auctionId];
         // Handle Burn
-        uint256 burnAmount = (a.currentBid * LibAppStorage.Burnable) / 100;
+        uint256 burnAmount = (_amount * LibAppStorage.Burnable) / 100;
         LibAppStorage._transferFrom(
             address(this),
             a.previousBidder,
@@ -148,18 +163,21 @@ contract AuctionFacet {
         );
 
         // Handle dao fees
-        uint256 daoAmount = (a.currentBid * LibAppStorage.DAO) / 100;
+        uint256 daoAmount = (_amount * LibAppStorage.DAO) / 100;
         LibAppStorage._transferFrom(address(this), a.previousBidder, daoAmount);
 
         // Handle team fees
-        uint256 teamAmount = (a.currentBid * LibAppStorage.TeamWallet) / 100;
+        uint256 teamAmount = (_amount * LibAppStorage.TeamWallet) / 100;
         LibAppStorage._transferFrom(
             address(this),
             a.previousBidder,
             teamAmount
         );
     }
-    function payLastInteractor(uint256 _auctionId, address _lastInteractor) private {
+    function payLastInteractor(
+        uint256 _auctionId,
+        address _lastInteractor
+    ) private {
         LibAppStorage.AuctionDetails storage a = l.Auctions[_auctionId];
         require(
             _lastInteractor != address(0),
@@ -167,6 +185,10 @@ contract AuctionFacet {
         );
 
         uint256 paymentAmount = (a.currentBid * 1) / 100;
-        LibAppStorage._transferFrom(address(this), _lastInteractor, paymentAmount);
+        LibAppStorage._transferFrom(
+            address(this),
+            _lastInteractor,
+            paymentAmount
+        );
     }
 }
