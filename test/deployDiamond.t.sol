@@ -7,6 +7,7 @@ import "../contracts/facets/DiamondLoupeFacet.sol";
 import "../contracts/facets/OwnershipFacet.sol";
 import "../contracts/facets/AuctionFacet.sol";
 import "../contracts/facets/ERC20Facet.sol";
+import "../contracts/MockNFT.sol";
 import "forge-std/Test.sol";
 import "../contracts/Diamond.sol";
 
@@ -18,6 +19,7 @@ contract DiamondDeployer is Test, IDiamondCut {
     OwnershipFacet ownerF;
     ERC20Facet erc20F;
     AuctionFacet auctionF;
+    MockNFT mNft;
 
     function testDeployDiamond() public {
         //deploy facets
@@ -48,14 +50,14 @@ contract DiamondDeployer is Test, IDiamondCut {
                 functionSelectors: generateSelectors("OwnershipFacet")
             })
         );
-         cut[2] = (
+        cut[2] = (
             FacetCut({
                 facetAddress: address(erc20F),
                 action: FacetCutAction.Add,
                 functionSelectors: generateSelectors("ERC20Facet")
             })
         );
-         cut[3] = (
+        cut[3] = (
             FacetCut({
                 facetAddress: address(auctionF),
                 action: FacetCutAction.Add,
@@ -68,6 +70,26 @@ contract DiamondDeployer is Test, IDiamondCut {
 
         //call a function
         DiamondLoupeFacet(address(diamond)).facetAddresses();
+    }
+
+    function testCreateAuction() public {
+        // Create a mock NFT contract
+        MockNFT nftContract = new MockNFT();
+        uint256 nftId = 1;
+        address nftAddress = address(nftContract);
+
+        // Mint the NFT to the test address
+        nftContract.mint(msg.sender, nftId);
+
+        // Call the createAuction function
+        auctionFacet.createAuction(7 days, 100, nftId, nftAddress);
+
+        // Assert that the auction was created successfully
+        Assert.equal(
+            auctionFacet.getAuctionCount(),
+            1,
+            "Auction should be created"
+        );
     }
 
     function generateSelectors(
