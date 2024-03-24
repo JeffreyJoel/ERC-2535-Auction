@@ -164,13 +164,13 @@ contract AuctionFacet {
 
         // Handle dao fees
         uint256 daoAmount = (_amount * LibAppStorage.DAO) / 100;
-        LibAppStorage._transferFrom(address(this), a.previousBidder, daoAmount);
+        LibAppStorage._transferFrom(address(this), LibAppStorage.DAOAddress, daoAmount);
 
         // Handle team fees
         uint256 teamAmount = (_amount * LibAppStorage.TeamWallet) / 100;
         LibAppStorage._transferFrom(
             address(this),
-            a.previousBidder,
+            LibAppStorage.TeamWalletAddress,
             teamAmount
         );
     }
